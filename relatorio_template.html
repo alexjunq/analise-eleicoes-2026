@@ -52,6 +52,8 @@ nav.toc { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 20px 0 0; font-
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 14px 0; }
 .card h3 { margin-top: 0; }
 .chart { position: relative; width: 100%; }
+h4 { font-size: .9rem; font-weight: 600; margin: 4px 0 6px; color: var(--ink-2); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; }
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
 .verdict { background: var(--accent-bg); border-radius: 10px; padding: 16px 18px; margin: 16px 0; }
 .verdict p { color: var(--ink); margin: 0; }
@@ -139,15 +141,17 @@ footer { margin-top: 64px; color: var(--muted); font-size: .85rem; }
     mesmo local de votação. O local inteiro vota igual mesmo onde o município vota diferente — padrão típico de aldeias e comunidades isoladas.</p>
   <div class="card"><div data-table="unico_local"></div></div>
 
-  <div class="grid2">
-    <div class="card"><h3>4.2 Urnas por % de votos em Lula (2º turno)</h3>
-      <div class="chart" style="height:280px"><canvas id="cHistLula"></canvas></div>
-      <p class="sub">Curva suave, sem pico artificial em 0% ou 100%. Urnas com ≥ 50 válidos.</p><div data-table="hist_lula"></div></div>
-    <div class="card"><h3>4.5 Último dígito das contagens</h3>
-      <div class="legend"><span><i style="background:var(--s1)"></i>1º turno</span><span><i style="background:var(--s2)"></i>2º turno</span></div>
-      <div class="chart" style="height:250px"><canvas id="cDig"></canvas></div>
-      <p class="sub">Contagens inventadas costumam fugir de 10% por dígito. Aqui todos ficam entre 9,96% e 10,07%.</p><div data-table="digitos"></div></div>
-  </div>
+  <div class="card"><h3>4.2 Urnas por % de votos em cada candidato (2º turno)</h3>
+    <div class="grid2">
+      <div><h4><i class="dot" style="background:var(--lula)"></i>Lula</h4><div class="chart" style="height:260px"><canvas id="cHistLula"></canvas></div></div>
+      <div><h4><i class="dot" style="background:var(--flavio)"></i>Flávio Bolsonaro</h4><div class="chart" style="height:260px"><canvas id="cHistFlavio"></canvas></div></div>
+    </div>
+    <p class="sub">Curvas suaves, sem pico artificial em 0% ou 100% para nenhum dos dois. Como no 2º turno só há dois candidatos, uma curva é o espelho da outra. Mesma escala nos dois gráficos. Urnas com ≥ 50 válidos.</p><div data-table="hist_lula"></div></div>
+
+  <div class="card"><h3>4.5 Último dígito das contagens</h3>
+    <div class="legend"><span><i style="background:var(--s1)"></i>1º turno</span><span><i style="background:var(--s2)"></i>2º turno</span></div>
+    <div class="chart" style="height:250px"><canvas id="cDig"></canvas></div>
+    <p class="sub">Contagens inventadas costumam fugir de 10% por dígito. Aqui todos ficam entre 9,96% e 10,07%.</p><div data-table="digitos"></div></div>
 
   <div class="card"><h3>4.3 Urnas com comparecimento ≥ 97%</h3><p class="sub">Urnas com ≥ 50 aptos. Poucas urnas e poucos votos — não alteram o resultado.</p><div data-table="alto_comp" data-open></div></div>
 
@@ -224,7 +228,7 @@ const COLS = {
   var_urnas_uf: [['uf', 'UF'], ['urnas', 'Urnas > limite', 1], ['pct', '% das urnas', 2]],
   var_urnas_top: [['uf', 'UF'], ['municipio', 'Município'], ['zona', 'Zona', 1], ['secao', 'Seção', 1], ['aptos_t1', 'Aptos 1º', 1], ['aptos_t2', 'Aptos 2º', 1], ['votos_t1', 'Votos 1º', 1], ['votos_t2', 'Votos 2º', 1], ['variacao_pct', 'Variação', 2]],
   unico_local: [['uf', 'UF'], ['municipio', 'Município'], ['zona', 'Zona', 1], ['secao', 'Seção', 1], ['validos', 'Válidos', 1], ['candidato', 'Candidato'], ['pct_lula_municipio', 'Lula no município', 2], ['pct_lula_local', 'Lula no local', 2], ['urnas_local', 'Urnas no local', 1]],
-  hist_lula: [['faixa', 'Faixa % Lula', 1], ['urnas', 'Urnas', 1]],
+  hist_lula: [['faixa', 'Faixa %', 1], ['urnas_lula', 'Urnas Lula', 1], ['urnas_flavio', 'Urnas Flávio', 1]],
   digitos: [['turno', 'Turno', 1], ['digito', 'Dígito', 1], ['pct', '% das contagens', 2]],
   alto_comp: [['turno', 'Turno', 1], ['urnas_97', 'Urnas ≥ 97%', 1], ['urnas_100', 'Urnas = 100%', 1], ['votos', 'Votos nessas urnas', 1], ['pct_lula', 'Lula nessas urnas', 2], ['pct_lula_geral', 'Lula geral', 2]],
   corr_uf: [['uf', 'UF'], ['corr', 'Correlação', 3]],
@@ -338,9 +342,11 @@ function draw() {
   mk('cVarUF', { type: 'bar', data: { labels: D.var_urnas_uf.map(r => r.uf), datasets: [{ data: D.var_urnas_uf.map(r => r.pct), backgroundColor: s1, ...bar }] }, options: o });
 
   o = base();
-  o.plugins.tooltip.callbacks = { title: c => `${c[0].label}% a ${+c[0].label + 5}% para Lula`, label: c => ` ${fmt(c.raw)} urnas` };
+  o.plugins.tooltip.callbacks = { title: c => `${c[0].label}% a ${+c[0].label + 5}% dos válidos`, label: c => ` ${fmt(c.raw)} urnas` };
   o.scales.x.ticks.callback = function (v) { return this.getLabelForValue(v) + '%'; };
-  mk('cHistLula', { type: 'bar', data: { labels: D.hist_lula.map(r => r.faixa), datasets: [{ data: D.hist_lula.map(r => r.urnas), backgroundColor: cL, ...bar }] }, options: o });
+  o.scales.y = { ...o.scales.y, max: Math.ceil(Math.max(...D.hist_lula.flatMap(r => [r.urnas_lula, r.urnas_flavio])) / 10000) * 10000 };
+  mk('cHistLula', { type: 'bar', data: { labels: D.hist_lula.map(r => r.faixa), datasets: [{ label: 'Lula', data: D.hist_lula.map(r => r.urnas_lula), backgroundColor: cL, ...bar }] }, options: o });
+  mk('cHistFlavio', { type: 'bar', data: { labels: D.hist_lula.map(r => r.faixa), datasets: [{ label: 'Flávio Bolsonaro', data: D.hist_lula.map(r => r.urnas_flavio), backgroundColor: cF, ...bar }] }, options: o });
 
   o = base();
   o.scales.y = { ...o.scales.y, min: 9.8, max: 10.2, ticks: { color: css('--muted'), callback: v => v.toFixed(1) + '%' } };

@@ -171,8 +171,16 @@ d['var_urnas_top'] = rows('''
 
 # --- testes de indícios --------------------------------------------------------
 d['hist_lula'] = rows('''
-    SELECT CAST(least(floor(100.0 * lula / validos / 5) * 5, 100) AS INTEGER) AS faixa, count(*) AS urnas
-    FROM pres WHERE turno = 2 AND validos >= 50 GROUP BY 1 ORDER BY 1
+    WITH f AS (
+        SELECT CAST(least(floor(100.0 * lula / validos / 5) * 5, 100) AS INTEGER) AS f_lula,
+               CAST(least(floor(100.0 * flavio / validos / 5) * 5, 100) AS INTEGER) AS f_flavio
+        FROM pres WHERE turno = 2 AND validos >= 50
+    )
+    SELECT faixa, coalesce(l.urnas, 0) AS urnas_lula, coalesce(b.urnas, 0) AS urnas_flavio
+    FROM range(0, 105, 5) r(faixa)
+    LEFT JOIN (SELECT f_lula AS faixa, count(*) AS urnas FROM f GROUP BY 1) l USING (faixa)
+    LEFT JOIN (SELECT f_flavio AS faixa, count(*) AS urnas FROM f GROUP BY 1) b USING (faixa)
+    ORDER BY faixa
 ''')
 d['alto_comp'] = rows('''
     SELECT turno, count(*) FILTER (WHERE comparecimento >= 0.97 * aptos) AS urnas_97,
