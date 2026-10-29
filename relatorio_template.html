@@ -105,9 +105,12 @@ footer { margin-top: 64px; color: var(--muted); font-size: .85rem; }
 <section id="unico">
   <h2>2. Urnas com votos para um único candidato</h2>
   <p>Urnas em que apenas um candidato recebeu votos nominais para o cargo (podendo haver brancos e nulos).</p>
-  <div class="card"><h3>Ocorrências por turno, cargo e candidato</h3><div data-table="unico_resumo" data-open></div></div>
+  <div class="card"><h3>Presidente</h3><div data-table="unico_pres" data-open></div></div>
+  <div class="card"><h3>Governador</h3><div data-table="unico_gov" data-open></div></div>
+  <div class="card"><h3>Senador</h3><div data-table="unico_sen" data-open></div></div>
   <div class="card"><h3>Presidente, 2º turno — urnas de candidato único por UF</h3>
-    <div class="legend"><span><i style="background:var(--s1)"></i>Lula</span><span><i style="background:var(--s2)"></i>Flávio Bolsonaro</span></div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Lula</span><span><i style="background:var(--s2)"></i>Flávio Bolsonaro</span>
+      <span>Barras: nº de urnas · número no topo: total de votos nessas urnas</span></div>
     <div class="chart" style="height:300px"><canvas id="cUnicoUF"></canvas></div><div data-table="unico_uf"></div></div>
 </section>
 
@@ -212,8 +215,10 @@ const COLS = {
   pres2: [['candidato', 'Candidato'], ['partido', 'Partido'], ['votos', 'Votos', 1], ['pct', '% válidos', 2]],
   pres2_uf: [['uf', 'UF'], ['lula', 'Lula %', 2], ['flavio', 'Flávio %', 2]],
   gov: [['uf', 'UF'], ['turno', 'Turno', 1], ['candidato', 'Eleito'], ['partido', 'Partido'], ['votos', 'Votos', 1], ['pct', '% válidos', 2]],
-  unico_resumo: [['turno', 'Turno', 1], ['cargo', 'Cargo'], ['candidato', 'Candidato'], ['urnas', 'Urnas', 1], ['votos', 'Votos do candidato', 1], ['brancos_nulos', 'Brancos + nulos', 1]],
-  unico_uf: [['uf', 'UF'], ['lula', 'Lula', 1], ['flavio', 'Flávio', 1]],
+  unico_pres: [['turno', 'Turno', 1], ['candidato', 'Candidato'], ['urnas', 'Urnas', 1], ['votos', 'Votos do candidato', 1], ['brancos_nulos', 'Brancos + nulos', 1]],
+  unico_gov: [['turno', 'Turno', 1], ['uf', 'UF'], ['candidato', 'Candidato'], ['urnas', 'Urnas', 1], ['votos', 'Votos do candidato', 1], ['brancos_nulos', 'Brancos + nulos', 1]],
+  unico_sen: [['turno', 'Turno', 1], ['uf', 'UF'], ['candidato', 'Candidato'], ['urnas', 'Urnas', 1], ['votos', 'Votos do candidato', 1], ['brancos_nulos', 'Brancos + nulos', 1]],
+  unico_uf: [['uf', 'UF'], ['lula', 'Urnas Lula', 1], ['votos_lula', 'Votos Lula', 1], ['flavio', 'Urnas Flávio', 1], ['votos_flavio', 'Votos Flávio', 1]],
   var_cidades: [['uf', 'UF'], ['municipio', 'Município'], ['urnas', 'Urnas', 1], ['votos_t1', 'Votos 1º t', 1], ['votos_t2', 'Votos 2º t', 1], ['variacao_pct', 'Variação', 2], ['urnas_acima', 'Urnas > limite', 1]],
   var_urnas_uf: [['uf', 'UF'], ['urnas', 'Urnas > limite', 1], ['pct', '% das urnas', 2]],
   var_urnas_top: [['uf', 'UF'], ['municipio', 'Município'], ['zona', 'Zona', 1], ['secao', 'Seção', 1], ['aptos_t1', 'Aptos 1º', 1], ['aptos_t2', 'Aptos 2º', 1], ['votos_t1', 'Votos 1º', 1], ['votos_t2', 'Votos 2º', 1], ['variacao_pct', 'Variação', 2]],
@@ -222,7 +227,7 @@ const COLS = {
   digitos: [['turno', 'Turno', 1], ['digito', 'Dígito', 1], ['pct', '% das contagens', 2]],
   alto_comp: [['turno', 'Turno', 1], ['urnas_97', 'Urnas ≥ 97%', 1], ['urnas_100', 'Urnas = 100%', 1], ['votos', 'Votos nessas urnas', 1], ['pct_lula', 'Lula nessas urnas', 2], ['pct_lula_geral', 'Lula geral', 2]],
   corr_uf: [['uf', 'UF'], ['corr', 'Correlação', 3]],
-  swing: [['grupo', 'Grupo'], ['urnas', 'Urnas', 1], ['lula_1t', 'Lula 1º t', 2], ['lula_2t', 'Lula 2º t', 2]],
+  swing: [['grupo', 'Grupo'], ['urnas', 'Urnas', 1], ['votos_1t', 'Votos 1º t', 1], ['votos_2t', 'Votos 2º t', 1], ['lula_1t', 'Lula 1º t', 2], ['lula_2t', 'Lula 2º t', 2]],
   substituidas: [['grupo', 'Grupo'], ['urnas', 'Urnas', 1], ['lula_1t', 'Lula 1º t', 2], ['lula_2t', 'Lula 2º t', 2]],
 };
 const cell = (v, t) => t === 2 ? fmtP(v) : t === 3 ? Number(v).toLocaleString('pt-BR') : t === 1 ? fmt(v) : nome(v ?? '—');
@@ -297,8 +302,22 @@ function draw() {
   ] }, options: o });
 
   o = base();
-  o.scales.x = { ...o.scales.x, stacked: true }; o.scales.y = { ...o.scales.y, stacked: true };
-  mk('cUnicoUF', { type: 'bar', data: { labels: D.unico_uf.map(r => r.uf), datasets: [
+  o.scales.x = { ...o.scales.x, stacked: true };
+  o.scales.y = { ...o.scales.y, stacked: true, grace: '12%', title: { display: true, text: 'Urnas', color: css('--muted') } };
+  const vU = [D.unico_uf.map(r => r.votos_lula), D.unico_uf.map(r => r.votos_flavio)];
+  o.plugins.tooltip.callbacks = { label: c => ` ${c.dataset.label}: ${fmt(c.raw)} urnas · ${fmt(vU[c.datasetIndex][c.dataIndex])} votos` };
+  // Rótulo no topo de cada pilha com o total de votos nas urnas da UF
+  const votosTopo = { id: 'votosTopo', afterDatasetsDraw(ch) {
+    const ctx = ch.ctx, metas = ch.data.datasets.map((_, i) => ch.getDatasetMeta(i));
+    ctx.save(); ctx.font = '600 11px system-ui, -apple-system, "Segoe UI", sans-serif';
+    ctx.fillStyle = css('--ink-2'); ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    D.unico_uf.forEach((r, i) => {
+      const top = Math.min(...metas.filter(m => ch.data.datasets[m.index].data[i] > 0).map(m => m.data[i].y));
+      ctx.fillText(fmt(r.votos_lula + r.votos_flavio), metas[0].data[i].x, top - 4);
+    });
+    ctx.restore();
+  } };
+  mk('cUnicoUF', { type: 'bar', plugins: [votosTopo], data: { labels: D.unico_uf.map(r => r.uf), datasets: [
     { label: 'Lula', data: D.unico_uf.map(r => r.lula), backgroundColor: s1, borderColor: surf, borderWidth: { top: 2 }, borderSkipped: false, maxBarThickness: 28 },
     { label: 'Flávio Bolsonaro', data: D.unico_uf.map(r => r.flavio), backgroundColor: s2, borderColor: surf, borderWidth: { top: 2 }, borderSkipped: false, maxBarThickness: 28 },
   ] }, options: o });

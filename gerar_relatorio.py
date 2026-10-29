@@ -100,13 +100,18 @@ con.execute('''
     )
     SELECT * FROM u WHERE n = 1
 ''')
-d['unico_resumo'] = rows('''
-    SELECT turno, cargo, candidato, count(*) AS urnas, sum(votos) AS votos, sum(brancos_nulos) AS brancos_nulos
-    FROM unico GROUP BY ALL ORDER BY turno, cargo, urnas DESC
-''')
+for chave, cargo in (('unico_pres', 'Presidente'), ('unico_gov', 'Governador'), ('unico_sen', 'Senador')):
+    uf_col = '' if cargo == 'Presidente' else 'uf, '
+    d[chave] = rows(f'''
+        SELECT turno, {uf_col} candidato, count(*) AS urnas, sum(votos) AS votos, sum(brancos_nulos) AS brancos_nulos
+        FROM unico WHERE cargo = '{cargo}'
+        GROUP BY ALL ORDER BY turno, {uf_col} urnas DESC
+    ''')
 d['unico_uf'] = rows('''
     SELECT uf, count(*) FILTER (WHERE candidato = 'LULA') AS lula,
-           count(*) FILTER (WHERE candidato = 'FLAVIO BOLSONARO') AS flavio
+           count(*) FILTER (WHERE candidato = 'FLAVIO BOLSONARO') AS flavio,
+           coalesce(sum(votos) FILTER (WHERE candidato = 'LULA'), 0) AS votos_lula,
+           coalesce(sum(votos) FILTER (WHERE candidato = 'FLAVIO BOLSONARO'), 0) AS votos_flavio
     FROM unico WHERE turno = 2 AND cargo = 'Presidente' GROUP BY uf ORDER BY lula + flavio DESC
 ''')
 d['unico_local'] = rows('''
@@ -200,6 +205,7 @@ d['swing'] = rows(f'''
     SELECT CASE WHEN abs(b.comparecimento - a.comparecimento) > {LIMIAR} * a.comparecimento
                 THEN 'Variação > 10%' ELSE 'Demais urnas' END AS grupo,
            count(*) AS urnas,
+           sum(a.comparecimento) AS votos_1t, sum(b.comparecimento) AS votos_2t,
            round(100.0 * sum(a.lula) / sum(a.lula + a.flavio), 2) AS lula_1t,
            round(100.0 * sum(b.lula) / sum(b.validos), 2) AS lula_2t
     {pares} WHERE a.comparecimento > 0 GROUP BY 1 ORDER BY 1
