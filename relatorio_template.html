@@ -11,27 +11,27 @@
   color-scheme: light;
   --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
   --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
-  --s1: #2a78d6; --s2: #eb6834; --neg: #e34948; --mid: #f0efec;
-  --seq: #cde2fb,#b7d3f6,#9ec5f4,#86b6ef,#6da7ec,#5598e7,#3987e5,#2a78d6,#256abf,#1c5cab,#184f95,#104281,#0d366b;
-  --accent-bg: #eef4fc;
+  --s1: #148f63; --s2: #c98500; --lula: #d92d2d; --flavio: #2a78d6; --neg: #c98500; --mid: #f0efec;
+  --seq: #c8e9d9,#aeddc7,#90d2b5,#73c6a3,#4ebb91,#18af80,#099f73,#028f67,#057e5b,#046f4f,#026044,#015139,#01432e;
+  --accent-bg: #e9f5ef;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
     --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
-    --s1: #3987e5; --s2: #d95926; --neg: #e66767; --mid: #383835;
-    --seq: #1f2a38,#1d3350,#1c3d66,#184f95,#1c5cab,#256abf,#2a78d6,#3987e5,#5598e7,#6da7ec,#86b6ef,#9ec5f4,#b7d3f6;
-    --accent-bg: #16202c;
+    --s1: #199e70; --s2: #c98500; --lula: #e85a5a; --flavio: #3987e5; --neg: #c98500; --mid: #383835;
+    --seq: #1a2e25,#0b3c2b,#034833,#026044,#046f4f,#057e5b,#028f67,#099f73,#18af80,#4ebb91,#73c6a3,#90d2b5,#aeddc7;
+    --accent-bg: #142520;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
   --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
-  --s1: #3987e5; --s2: #d95926; --neg: #e66767; --mid: #383835;
-  --seq: #1f2a38,#1d3350,#1c3d66,#184f95,#1c5cab,#256abf,#2a78d6,#3987e5,#5598e7,#6da7ec,#86b6ef,#9ec5f4,#b7d3f6;
-  --accent-bg: #16202c;
+  --s1: #199e70; --s2: #c98500; --lula: #e85a5a; --flavio: #3987e5; --neg: #c98500; --mid: #383835;
+  --seq: #1a2e25,#0b3c2b,#034833,#026044,#046f4f,#057e5b,#028f67,#099f73,#18af80,#4ebb91,#73c6a3,#90d2b5,#aeddc7;
+  --accent-bg: #142520;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
@@ -97,7 +97,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: .85rem; }
       <div id="bn2"></div><div data-table="pres2"></div></div>
   </div>
   <div class="card"><h3>Presidente — 2º turno por UF</h3>
-    <div class="legend"><span><i style="background:var(--s1)"></i>Lula (PT)</span><span><i style="background:var(--s2)"></i>Flávio Bolsonaro (PL)</span></div>
+    <div class="legend"><span><i style="background:var(--lula)"></i>Lula (PT)</span><span><i style="background:var(--flavio)"></i>Flávio Bolsonaro (PL)</span></div>
     <div class="chart" style="height:640px"><canvas id="cPresUF"></canvas></div><div data-table="pres2_uf"></div></div>
   <div class="card"><h3>Governador — eleito por UF</h3><p class="sub">Vencedor do 2º turno onde houve; senão, do 1º turno.</p><div data-table="gov" data-open></div></div>
 </section>
@@ -109,7 +109,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: .85rem; }
   <div class="card"><h3>Governador</h3><div data-table="unico_gov" data-open></div></div>
   <div class="card"><h3>Senador</h3><div data-table="unico_sen" data-open></div></div>
   <div class="card"><h3>Presidente, 2º turno — urnas de candidato único por UF</h3>
-    <div class="legend"><span><i style="background:var(--s1)"></i>Lula</span><span><i style="background:var(--s2)"></i>Flávio Bolsonaro</span>
+    <div class="legend"><span><i style="background:var(--lula)"></i>Lula</span><span><i style="background:var(--flavio)"></i>Flávio Bolsonaro</span>
       <span>Barras: nº de urnas · número no topo: total de votos nessas urnas</span></div>
     <div class="chart" style="height:300px"><canvas id="cUnicoUF"></canvas></div><div data-table="unico_uf"></div></div>
 </section>
@@ -282,26 +282,27 @@ function mk(id, cfg) { charts.push(new Chart(document.getElementById(id), cfg));
 
 function draw() {
   charts.forEach(c => c.destroy()); charts = [];
-  const s1 = css('--s1'), s2 = css('--s2'), neg = css('--neg'), surf = css('--surface');
+  const corCand = c => c === 'LULA' ? cL : c === 'FLAVIO BOLSONARO' ? cF : css('--muted');
+  const s1 = css('--s1'), s2 = css('--s2'), neg = css('--neg'), cL = css('--lula'), cF = css('--flavio'), surf = css('--surface');
   const pctAxis = { ticks: { color: css('--muted'), callback: v => v + '%' } };
 
   let o = base({ indexAxis: 'y' });
   o.scales.x = { ...o.scales.x, ...pctAxis };
   o.plugins.tooltip.callbacks = { label: c => ` ${fmtP(c.raw)} · ${fmt(D.pres1[c.dataIndex].votos)} votos` };
-  mk('cPres1', { type: 'bar', data: { labels: D.pres1.map(r => `${nome(r.candidato)} (${r.partido})`), datasets: [{ data: D.pres1.map(r => r.pct), backgroundColor: s1, ...bar }] }, options: o });
+  mk('cPres1', { type: 'bar', data: { labels: D.pres1.map(r => `${nome(r.candidato)} (${r.partido})`), datasets: [{ data: D.pres1.map(r => r.pct), backgroundColor: D.pres1.map(r => corCand(r.candidato)), ...bar }] }, options: o });
 
   o = base({ indexAxis: 'y' });
   o.scales.x = { ...o.scales.x, ...pctAxis, max: 100 };
   o.plugins.tooltip.callbacks = { label: c => ` ${fmtP(c.raw)} · ${fmt(D.pres2[c.dataIndex].votos)} votos` };
-  mk('cPres2', { type: 'bar', data: { labels: D.pres2.map(r => `${nome(r.candidato)} (${r.partido})`), datasets: [{ data: D.pres2.map(r => r.pct), backgroundColor: [s1, s2], ...bar }] }, options: o });
+  mk('cPres2', { type: 'bar', data: { labels: D.pres2.map(r => `${nome(r.candidato)} (${r.partido})`), datasets: [{ data: D.pres2.map(r => r.pct), backgroundColor: D.pres2.map(r => corCand(r.candidato)), ...bar }] }, options: o });
 
   o = base({ indexAxis: 'y' });
   o.scales.x = { ...o.scales.x, ...pctAxis, stacked: true, max: 100 };
   o.scales.y = { ...o.scales.y, stacked: true };
   o.plugins.tooltip.callbacks = { label: c => ` ${c.dataset.label}: ${fmtP(c.raw)}` };
   mk('cPresUF', { type: 'bar', data: { labels: D.pres2_uf.map(r => r.uf), datasets: [
-    { label: 'Lula', data: D.pres2_uf.map(r => r.lula), backgroundColor: s1, borderColor: surf, borderWidth: { right: 2 }, borderSkipped: false, maxBarThickness: 18 },
-    { label: 'Flávio Bolsonaro', data: D.pres2_uf.map(r => r.flavio), backgroundColor: s2, borderColor: surf, borderWidth: { left: 2 }, borderSkipped: false, maxBarThickness: 18 },
+    { label: 'Lula', data: D.pres2_uf.map(r => r.lula), backgroundColor: cL, borderColor: surf, borderWidth: { right: 2 }, borderSkipped: false, maxBarThickness: 18 },
+    { label: 'Flávio Bolsonaro', data: D.pres2_uf.map(r => r.flavio), backgroundColor: cF, borderColor: surf, borderWidth: { left: 2 }, borderSkipped: false, maxBarThickness: 18 },
   ] }, options: o });
 
   o = base();
@@ -321,8 +322,8 @@ function draw() {
     ctx.restore();
   } };
   mk('cUnicoUF', { type: 'bar', plugins: [votosTopo], data: { labels: D.unico_uf.map(r => r.uf), datasets: [
-    { label: 'Lula', data: D.unico_uf.map(r => r.lula), backgroundColor: s1, borderColor: surf, borderWidth: { top: 2 }, borderSkipped: false, maxBarThickness: 28 },
-    { label: 'Flávio Bolsonaro', data: D.unico_uf.map(r => r.flavio), backgroundColor: s2, borderColor: surf, borderWidth: { top: 2 }, borderSkipped: false, maxBarThickness: 28 },
+    { label: 'Lula', data: D.unico_uf.map(r => r.lula), backgroundColor: cL, borderColor: surf, borderWidth: { top: 2 }, borderSkipped: false, maxBarThickness: 28 },
+    { label: 'Flávio Bolsonaro', data: D.unico_uf.map(r => r.flavio), backgroundColor: cF, borderColor: surf, borderWidth: { top: 2 }, borderSkipped: false, maxBarThickness: 28 },
   ] }, options: o });
 
   o = base();
@@ -339,7 +340,7 @@ function draw() {
   o = base();
   o.plugins.tooltip.callbacks = { title: c => `${c[0].label}% a ${+c[0].label + 5}% para Lula`, label: c => ` ${fmt(c.raw)} urnas` };
   o.scales.x.ticks.callback = function (v) { return this.getLabelForValue(v) + '%'; };
-  mk('cHistLula', { type: 'bar', data: { labels: D.hist_lula.map(r => r.faixa), datasets: [{ data: D.hist_lula.map(r => r.urnas), backgroundColor: s1, ...bar }] }, options: o });
+  mk('cHistLula', { type: 'bar', data: { labels: D.hist_lula.map(r => r.faixa), datasets: [{ data: D.hist_lula.map(r => r.urnas), backgroundColor: cL, ...bar }] }, options: o });
 
   o = base();
   o.scales.y = { ...o.scales.y, min: 9.8, max: 10.2, ticks: { color: css('--muted'), callback: v => v.toFixed(1) + '%' } };
