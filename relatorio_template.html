@@ -159,10 +159,11 @@ footer { margin-top: 64px; color: var(--muted); font-size: .85rem; }
     <div class="legend"><span><i style="background:var(--s1)"></i>Positiva</span><span><i style="background:var(--neg)"></i>Negativa</span></div>
     <div class="chart" style="height:300px"><canvas id="cCorr"></canvas></div><div data-table="corr_uf"></div></div>
 
-  <div class="grid2">
-    <div class="card"><h3>4.6 Variação de comparecimento × mudança de voto</h3><p class="sub">Lula 1º turno = % no confronto direto com Flávio.</p><div data-table="swing" data-open></div></div>
-    <div class="card"><h3>4.7 Urnas substituídas entre turnos</h3><p class="sub">Número de série da urna diferente no 2º turno.</p><div data-table="substituidas" data-open></div></div>
-  </div>
+  <div class="card"><h3>4.6 Variação de comparecimento × mudança de voto</h3>
+    <p class="sub">Votos = comparecimento (inclui brancos e nulos). Percentuais sobre votos válidos; “Demais” = outros candidatos (só existem no 1º turno).
+      “Lula × Flávio” = % de Lula considerando só os dois, comparável entre os turnos.</p>
+    <div data-table="swing" data-open></div></div>
+  <div class="card"><h3>4.7 Urnas substituídas entre turnos</h3><p class="sub">Número de série da urna diferente no 2º turno. Lula 1º turno = % no confronto direto com Flávio.</p><div data-table="substituidas" data-open></div></div>
 </section>
 
 <section id="metodo">
@@ -227,7 +228,9 @@ const COLS = {
   digitos: [['turno', 'Turno', 1], ['digito', 'Dígito', 1], ['pct', '% das contagens', 2]],
   alto_comp: [['turno', 'Turno', 1], ['urnas_97', 'Urnas ≥ 97%', 1], ['urnas_100', 'Urnas = 100%', 1], ['votos', 'Votos nessas urnas', 1], ['pct_lula', 'Lula nessas urnas', 2], ['pct_lula_geral', 'Lula geral', 2]],
   corr_uf: [['uf', 'UF'], ['corr', 'Correlação', 3]],
-  swing: [['grupo', 'Grupo'], ['urnas', 'Urnas', 1], ['votos_1t', 'Votos 1º t', 1], ['votos_2t', 'Votos 2º t', 1], ['lula_1t', 'Lula 1º t', 2], ['lula_2t', 'Lula 2º t', 2]],
+  swing: [['grupo', 'Grupo'], ['turno', 'Turno', 1], ['urnas', 'Urnas', 1], ['votos', 'Votos', 1], ['abstencao_pct', 'Abstenção %', 2],
+    ['lula', 'Lula', 1], ['lula_pct', 'Lula %', 2], ['flavio', 'Flávio', 1], ['flavio_pct', 'Flávio %', 2],
+    ['demais', 'Demais', 1], ['demais_pct', 'Demais %', 2], ['lula_confronto', 'Lula × Flávio', 2]],
   substituidas: [['grupo', 'Grupo'], ['urnas', 'Urnas', 1], ['lula_1t', 'Lula 1º t', 2], ['lula_2t', 'Lula 2º t', 2]],
 };
 const cell = (v, t) => t === 2 ? fmtP(v) : t === 3 ? Number(v).toLocaleString('pt-BR') : t === 1 ? fmt(v) : nome(v ?? '—');

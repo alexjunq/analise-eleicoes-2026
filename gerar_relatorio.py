@@ -202,13 +202,20 @@ d['digitos'] = rows('''
 ''')
 pares = "FROM (SELECT * FROM pres WHERE turno = 1) a JOIN (SELECT * FROM pres WHERE turno = 2) b USING (uf, cd_municipio, zona, secao)"
 d['swing'] = rows(f'''
-    SELECT CASE WHEN abs(b.comparecimento - a.comparecimento) > {LIMIAR} * a.comparecimento
-                THEN 'Variação > 10%' ELSE 'Demais urnas' END AS grupo,
-           count(*) AS urnas,
-           sum(a.comparecimento) AS votos_1t, sum(b.comparecimento) AS votos_2t,
-           round(100.0 * sum(a.lula) / sum(a.lula + a.flavio), 2) AS lula_1t,
-           round(100.0 * sum(b.lula) / sum(b.validos), 2) AS lula_2t
-    {pares} WHERE a.comparecimento > 0 GROUP BY 1 ORDER BY 1
+    WITH g AS (
+        SELECT uf, cd_municipio, zona, secao,
+               CASE WHEN abs(b.comparecimento - a.comparecimento) > {LIMIAR} * a.comparecimento
+                    THEN 'Variação > 10%' ELSE 'Demais urnas' END AS grupo
+        {pares} WHERE a.comparecimento > 0
+    )
+    SELECT grupo, turno, count(*) AS urnas, sum(comparecimento) AS votos,
+           round(100.0 * (sum(aptos) - sum(comparecimento)) / sum(aptos), 2) AS abstencao_pct,
+           sum(lula) AS lula, round(100.0 * sum(lula) / sum(validos), 2) AS lula_pct,
+           sum(flavio) AS flavio, round(100.0 * sum(flavio) / sum(validos), 2) AS flavio_pct,
+           sum(validos - lula - flavio) AS demais, round(100.0 * sum(validos - lula - flavio) / sum(validos), 2) AS demais_pct,
+           round(100.0 * sum(lula) / sum(lula + flavio), 2) AS lula_confronto
+    FROM g JOIN pres p USING (uf, cd_municipio, zona, secao)
+    GROUP BY grupo, turno ORDER BY grupo, turno
 ''')
 d['substituidas'] = rows(f'''
     SELECT CASE WHEN a.nr_urna <> b.nr_urna THEN 'Urna substituída' ELSE 'Mesma urna' END AS grupo,
