@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Como Reproduzir o Relatório</title>
+<meta name="description" content="Passo a passo para baixar os boletins de urna do TSE, executar a análise e publicar o relatório no GitHub Pages.">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --border: rgba(11,11,11,0.10); --accent: #2a78d6; --accent-bg: #eef4fc; --code: #f0efec;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --border: rgba(255,255,255,0.10); --accent: #3987e5; --accent-bg: #16202c; --code: #262624;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --border: rgba(255,255,255,0.10); --accent: #3987e5; --accent-bg: #16202c; --code: #262624;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 32px 16px 80px; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 6px; }
+h2 { font-size: 1.3rem; margin: 44px 0 8px; padding-top: 8px; border-top: 1px solid var(--grid); }
+h2 .n { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font-size: .9rem; align-items: center; justify-content: center; margin-right: 10px; vertical-align: 2px; }
+p, li { color: var(--ink-2); }
+a { color: var(--accent); }
+.sub { color: var(--muted); margin: 0; }
+code { background: var(--code); padding: 1px 6px; border-radius: 5px; font-size: .9em; }
+pre { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: .88rem; line-height: 1.5; }
+pre code { background: none; padding: 0; }
+.note { background: var(--accent-bg); border-radius: 10px; padding: 12px 16px; margin: 14px 0; }
+.note p { color: var(--ink); margin: 0; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: 10px 0; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--grid); text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+.wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<main>
+<p class="sub"><a href="index.html">← Voltar ao relatório</a></p>
+<h1>Como reproduzir o relatório</h1>
+<p class="sub">Do download dos boletins de urna do TSE até a publicação no GitHub Pages.</p>
+
+<h2><span class="n">1</span>Requisitos</h2>
+<ul>
+  <li>Python 3.10 ou superior.</li>
+  <li><strong>~45 GB livres em disco</strong>: os CSVs descompactados do 1º turno somam ~35 GB (São Paulo sozinho tem 8 GB), os do 2º turno ~1 GB, mais os ZIPs e ~1 GB de cache Parquet.</li>
+  <li>16 GB de RAM recomendados. O DuckDB processa em streaming e usa disco temporário se faltar memória.</li>
+</ul>
+<pre><code>python3 -m pip install duckdb pandas jupyter nbconvert</code></pre>
+
+<h2><span class="n">2</span>Baixar os dados do TSE</h2>
+<p>Os arquivos estão no <a href="https://dadosabertos.tse.jus.br/dataset/resultados-2026">Portal de Dados Abertos do TSE — Resultados 2026</a>.
+Procure o recurso <strong>“Boletim de urna”</strong> (BU na web). Há um ZIP por UF e por turno, mais o <code>ZZ</code> (exterior):</p>
+<div class="wrap"><table>
+  <tr><th>Turno</th><th>Padrão do nome</th><th>Exemplo</th></tr>
+  <tr><td>1º</td><td><code>bweb_1t_&lt;UF&gt;_&lt;DDMMAAAAHHMM&gt;.zip</code></td><td><code>bweb_1t_AC_051020261403.zip</code></td></tr>
+  <tr><td>2º</td><td><code>bweb_2t_&lt;UF&gt;_&lt;DDMMAAAAHHMM&gt;.zip</code></td><td><code>bweb_2t_AC_261020260742.zip</code></td></tr>
+</table></div>
+<p>O sufixo é a data e hora em que o TSE gerou o arquivo. Se o TSE republicar os dados, ele muda — <strong>confira no portal antes de baixar</strong>.
+Os links seguem o padrão do CDN do TSE; o script abaixo baixa as 28 UFs de cada turno:</p>
+<pre><code>#!/usr/bin/env bash
+# baixar_dados.sh — ajuste T1 e T2 conforme os nomes listados no portal
+set -euo pipefail
+BASE_URL="https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2026/buweb"
+T1="051020261403"   # carimbo do 1º turno
+T2="261020260742"   # carimbo do 2º turno
+UFS="AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO ZZ"
+
+mkdir -p 1o-turno 2o-turno
+for uf in $UFS; do
+  curl -fL --retry 3 -o "1o-turno/bweb_1t_${uf}_${T1}.zip" "$BASE_URL/bweb_1t_${uf}_${T1}.zip"
+  curl -fL --retry 3 -o "2o-turno/bweb_2t_${uf}_${T2}.zip" "$BASE_URL/bweb_2t_${uf}_${T2}.zip"
+done</code></pre>
+<div class="note"><p>Se algum link der erro 404, copie o endereço direto da página do portal (botão “Baixar” de cada recurso): o TSE às vezes muda o caminho do CDN entre publicações.</p></div>
+
+<h2><span class="n">3</span>Descompactar</h2>
+<p>Cada ZIP contém o CSV da UF e o <code>leiame</code> em PDF, que descreve todas as colunas.</p>
+<pre><code>for z in 1o-turno/*.zip; do unzip -o "$z" -d 1o-turno; done
+for z in 2o-turno/*.zip; do unzip -o "$z" -d 2o-turno; done</code></pre>
+<p>A estrutura final deve ficar assim:</p>
+<pre><code>urnas/
+├── 1o-turno/              # bweb_1t_*.csv  (28 arquivos)
+├── 2o-turno/              # bweb_2t_*.csv  (28 arquivos)
+├── analise_urnas.ipynb    # notebook de análise
+├── gerar_relatorio.py     # gera docs/index.html
+├── relatorio_template.html
+└── docs/                  # site publicado no GitHub Pages
+    ├── index.html
+    └── como-executar.html</code></pre>
+
+<h2><span class="n">4</span>Executar o notebook</h2>
+<p>Na <strong>primeira execução</strong>, o notebook lê todos os CSVs (codificação Latin-1, separador <code>;</code>) e grava o cache em <code>cache/</code>.
+Em um Mac com 8 núcleos isso levou cerca de 3 minutos. As execuções seguintes reutilizam o cache e terminam em segundos.</p>
+<pre><code>jupyter nbconvert --to notebook --execute --inplace analise_urnas.ipynb</code></pre>
+<p>Ou abra de forma interativa com <code>jupyter lab analise_urnas.ipynb</code>. O notebook produz:</p>
+<ul>
+  <li>resultado do 1º e 2º turnos (Presidente, Governador, Senador, Deputados);</li>
+  <li>urnas com votos para um único candidato;</li>
+  <li>variação do comparecimento por urna e por cidade entre os turnos, destacando as acima de 10%;</li>
+  <li>testes estatísticos de indícios de manipulação;</li>
+  <li>CSVs em <code>resultados/</code>.</li>
+</ul>
+<p>Parâmetros na primeira célula de código:</p>
+<div class="wrap"><table>
+  <tr><th>Variável</th><th>Padrão</th><th>Efeito</th></tr>
+  <tr><td><code>LIMIAR_VARIACAO</code></td><td><code>0.10</code></td><td>limite de variação entre turnos (10%)</td></tr>
+  <tr><td><code>CARGOS_CANDIDATO_UNICO</code></td><td>Presidente, Governador, Senador</td><td>cargos verificados na busca por candidato único</td></tr>
+  <tr><td><code>MIN_ELEITORES_CANDIDATO_UNICO</code></td><td><code>0</code></td><td>ignora urnas com menos votantes que isso</td></tr>
+</table></div>
+<div class="note"><p>Para reprocessar os CSVs (por exemplo, após baixar uma versão nova), apague a pasta <code>cache/</code> antes de executar.</p></div>
+
+<h2><span class="n">5</span>Gerar o relatório HTML</h2>
+<p>Depois que o cache existe, gere a página estática. Os dados são embutidos no HTML; os gráficos usam Chart.js via CDN.</p>
+<pre><code>python3 gerar_relatorio.py</code></pre>
+<p>Abra <code>docs/index.html</code> no navegador para conferir. O limite de 10% do relatório fica na constante <code>LIMIAR</code> no início do script.</p>
+
+<h2><span class="n">6</span>Publicar no GitHub Pages</h2>
+<p>Os CSVs e o cache são grandes demais para o GitHub (limite de 100 MB por arquivo). Versione só o código e a pasta <code>docs/</code>; o <code>.gitignore</code> do projeto já exclui o resto.</p>
+<pre><code>git init
+git add .gitignore analise_urnas.ipynb gerar_relatorio.py relatorio_template.html docs/
+git commit -m "Relatório dos boletins de urna 2026"
+git branch -M main
+git remote add origin https://github.com/&lt;usuario&gt;/&lt;repositorio&gt;.git
+git push -u origin main</code></pre>
+<p>No GitHub, abra <strong>Settings → Pages</strong>, em <em>Build and deployment</em> escolha <strong>Deploy from a branch</strong>, branch <code>main</code>, pasta <code>/docs</code>, e salve.
+Em um ou dois minutos o site fica em <code>https://&lt;usuario&gt;.github.io/&lt;repositorio&gt;/</code>.</p>
+<p>Para atualizar: rode de novo os passos 4 e 5, faça commit de <code>docs/</code> e <code>git push</code>.</p>
+
+<h2><span class="n">7</span>Observações sobre os dados</h2>
+<ul>
+  <li>Uma linha do CSV = votos de um votável (candidato, legenda, branco ou nulo) em uma seção e cargo. Aptos e comparecimento repetem-se em todas as linhas da seção.</li>
+  <li>A chave de uma urna é <code>SG_UF + CD_MUNICIPIO + NR_ZONA + NR_SECAO</code>.</li>
+  <li>Seções agregadas aparecem sob a seção principal (coluna <code>DS_SECOES_AGREGADAS</code>).</li>
+  <li>No 2º turno só há Presidente e, em alguns estados, Governador.</li>
+</ul>
+</main>
+</body>
+</html>

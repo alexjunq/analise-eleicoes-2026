@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boletins de Urna 2026</title>
+<meta name="description" content="Análise dos boletins de urna do TSE das Eleições 2026: resultados do 1º e 2º turnos, urnas com candidato único, variação de votos e testes de indícios de manipulação.">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --s1: #2a78d6; --s2: #eb6834; --neg: #e34948; --mid: #f0efec;
+  --seq: #cde2fb,#b7d3f6,#9ec5f4,#86b6ef,#6da7ec,#5598e7,#3987e5,#2a78d6,#256abf,#1c5cab,#184f95,#104281,#0d366b;
+  --accent-bg: #eef4fc;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --s1: #3987e5; --s2: #d95926; --neg: #e66767; --mid: #383835;
+    --seq: #1f2a38,#1d3350,#1c3d66,#184f95,#1c5cab,#256abf,#2a78d6,#3987e5,#5598e7,#6da7ec,#86b6ef,#9ec5f4,#b7d3f6;
+    --accent-bg: #16202c;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --s1: #3987e5; --s2: #d95926; --neg: #e66767; --mid: #383835;
+  --seq: #1f2a38,#1d3350,#1c3d66,#184f95,#1c5cab,#256abf,#2a78d6,#3987e5,#5598e7,#6da7ec,#86b6ef,#9ec5f4,#b7d3f6;
+  --accent-bg: #16202c;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1080px; margin: 0 auto; padding: 32px 16px 80px; }
+header.top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 1.4rem; margin: 56px 0 8px; padding-top: 8px; border-top: 1px solid var(--grid); }
+h3 { font-size: 1.05rem; margin: 28px 0 6px; }
+p, li { color: var(--ink-2); max-width: 72ch; }
+a { color: var(--s1); }
+.sub { color: var(--muted); font-size: .9rem; margin: 0; }
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 20px 0 0; font-size: .92rem; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 20px 0; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.tile .k { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.tile .v { font-size: 1.7rem; font-weight: 650; line-height: 1.2; margin-top: 4px; }
+.tile .n { font-size: .85rem; color: var(--ink-2); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 14px 0; }
+.card h3 { margin-top: 0; }
+.chart { position: relative; width: 100%; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.verdict { background: var(--accent-bg); border-radius: 10px; padding: 16px 18px; margin: 16px 0; }
+.verdict p { color: var(--ink); margin: 0; }
+.tag { display: inline-block; font-size: .78rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--ink-2); margin-left: 6px; }
+details { margin-top: 10px; }
+summary { cursor: pointer; color: var(--ink-2); font-size: .9rem; }
+.tbl-wrap { overflow-x: auto; max-height: 460px; overflow-y: auto; margin-top: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: left; white-space: nowrap; }
+th { position: sticky; top: 0; background: var(--surface); color: var(--muted); font-weight: 600; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.legend { display: flex; gap: 16px; font-size: .88rem; color: var(--ink-2); margin: 4px 0 8px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+table.heat td { text-align: center; font-variant-numeric: tabular-nums; border: 2px solid var(--surface); padding: 6px 4px; min-width: 52px; }
+table.heat th { text-align: center; }
+.theme-btn { background: none; border: 1px solid var(--border); color: var(--ink-2); border-radius: 8px; padding: 4px 10px; cursor: pointer; font: inherit; font-size: .85rem; }
+footer { margin-top: 64px; color: var(--muted); font-size: .85rem; }
+@media (max-width: 600px) { h1 { font-size: 1.6rem; } .tile .v { font-size: 1.4rem; } }
+</style>
+</head>
+<body>
+<main>
+<header class="top">
+  <div>
+    <h1>Boletins de Urna — Eleições 2026</h1>
+    <p class="sub">Dados abertos do TSE · 1º turno (04/10) e 2º turno (25/10) · gerado em <span id="gerado"></span></p>
+  </div>
+  <button class="theme-btn" id="tema" type="button">Alternar tema</button>
+</header>
+<nav class="toc">
+  <a href="#resultado">Resultados</a><a href="#unico">Candidato único</a><a href="#variacao">Variação 1º × 2º turno</a>
+  <a href="#indicios">Indícios de manipulação</a><a href="#metodo">Metodologia</a><a href="como-executar.html">Como reproduzir</a>
+</nav>
+
+<div class="tiles" id="tiles"></div>
+
+<section id="resultado">
+  <h2>1. Resultado das eleições</h2>
+  <p>Percentuais sobre votos válidos (nominais). Inclui as seções do exterior (UF <code>ZZ</code>).</p>
+  <div class="grid2">
+    <div class="card"><h3>Presidente — 1º turno</h3><div class="chart" style="height:420px"><canvas id="cPres1"></canvas></div><div data-table="pres1"></div></div>
+    <div class="card"><h3>Presidente — 2º turno</h3><div class="chart" style="height:160px"><canvas id="cPres2"></canvas></div>
+      <div id="bn2"></div><div data-table="pres2"></div></div>
+  </div>
+  <div class="card"><h3>Presidente — 2º turno por UF</h3>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Lula (PT)</span><span><i style="background:var(--s2)"></i>Flávio Bolsonaro (PL)</span></div>
+    <div class="chart" style="height:640px"><canvas id="cPresUF"></canvas></div><div data-table="pres2_uf"></div></div>
+  <div class="card"><h3>Governador — eleito por UF</h3><p class="sub">Vencedor do 2º turno onde houve; senão, do 1º turno.</p><div data-table="gov" data-open></div></div>
+</section>
+
+<section id="unico">
+  <h2>2. Urnas com votos para um único candidato</h2>
+  <p>Urnas em que apenas um candidato recebeu votos nominais para o cargo (podendo haver brancos e nulos).</p>
+  <div class="card"><h3>Ocorrências por turno, cargo e candidato</h3><div data-table="unico_resumo" data-open></div></div>
+  <div class="card"><h3>Presidente, 2º turno — urnas de candidato único por UF</h3>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Lula</span><span><i style="background:var(--s2)"></i>Flávio Bolsonaro</span></div>
+    <div class="chart" style="height:300px"><canvas id="cUnicoUF"></canvas></div><div data-table="unico_uf"></div></div>
+</section>
+
+<section id="variacao">
+  <h2>3. Variação de votos totais por urna e por cidade (1º × 2º turno)</h2>
+  <p>“Votos totais” = comparecimento da urna. Destacamos cidades e urnas cuja variação entre turnos passou de <strong><span class="lim"></span>%</strong>.</p>
+  <div class="tiles" id="tilesVar"></div>
+  <div class="card"><h3>Distribuição dos municípios pela variação do comparecimento</h3>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Até <span class="lim"></span>%</span><span><i style="background:var(--s2)"></i>Acima de <span class="lim"></span>%</span></div>
+    <div class="chart" style="height:300px"><canvas id="cVarHist"></canvas></div>
+    <p class="sub">Faixas de 2 p.p.; extremos agrupados em −30% e +38%.</p></div>
+  <div class="card"><h3>Municípios com variação acima de <span class="lim"></span>%</h3><div data-table="var_cidades" data-open></div></div>
+  <div class="card"><h3>% de urnas com variação acima de <span class="lim"></span>% por UF</h3>
+    <div class="chart" style="height:340px"><canvas id="cVarUF"></canvas></div><div data-table="var_urnas_uf"></div></div>
+  <div class="card"><h3>30 urnas com maior variação</h3><div data-table="var_urnas_top" data-open></div></div>
+</section>
+
+<section id="indicios">
+  <h2>4. Há indícios de manipulação?</h2>
+  <div class="verdict"><p><strong>Nenhum dos sete testes apontou padrão compatível com manipulação em larga escala.</strong>
+    Os testes detectam sinais típicos de fraude na contagem (inclusão de votos, números inventados, urnas destoantes);
+    não provam ausência de fraude nem detectam compra de votos ou coação.</p></div>
+
+  <h3>4.1 Urnas de candidato único estão em locais inteiros com voto homogêneo</h3>
+  <p>Para cada urna 100% de um candidato (2º turno, ≥ 30 válidos), comparamos o % de Lula no município e no
+    mesmo local de votação. O local inteiro vota igual mesmo onde o município vota diferente — padrão típico de aldeias e comunidades isoladas.</p>
+  <div class="card"><div data-table="unico_local"></div></div>
+
+  <div class="grid2">
+    <div class="card"><h3>4.2 Urnas por % de votos em Lula (2º turno)</h3>
+      <div class="chart" style="height:280px"><canvas id="cHistLula"></canvas></div>
+      <p class="sub">Curva suave, sem pico artificial em 0% ou 100%. Urnas com ≥ 50 válidos.</p><div data-table="hist_lula"></div></div>
+    <div class="card"><h3>4.5 Último dígito das contagens</h3>
+      <div class="legend"><span><i style="background:var(--s1)"></i>1º turno</span><span><i style="background:var(--s2)"></i>2º turno</span></div>
+      <div class="chart" style="height:250px"><canvas id="cDig"></canvas></div>
+      <p class="sub">Contagens inventadas costumam fugir de 10% por dígito. Aqui todos ficam entre 9,96% e 10,07%.</p><div data-table="digitos"></div></div>
+  </div>
+
+  <div class="card"><h3>4.3 Urnas com comparecimento ≥ 97%</h3><p class="sub">Urnas com ≥ 50 aptos. Poucas urnas e poucos votos — não alteram o resultado.</p><div data-table="alto_comp" data-open></div></div>
+
+  <div class="card"><h3>4.4 Comparecimento × % de Lula por urna (2º turno)</h3>
+    <p class="sub">Inclusão de votos em massa gera correlação positiva e uma cauda de urnas indo para o canto inferior direito (comparecimento e voto ≈ 100%).
+      Correlação nacional: <strong id="corrNac"></strong>.</p>
+    <div class="tbl-wrap" style="max-height:none"><table class="heat" id="heat"></table></div>
+    <h3>Correlação por UF</h3>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Positiva</span><span><i style="background:var(--neg)"></i>Negativa</span></div>
+    <div class="chart" style="height:300px"><canvas id="cCorr"></canvas></div><div data-table="corr_uf"></div></div>
+
+  <div class="grid2">
+    <div class="card"><h3>4.6 Variação de comparecimento × mudança de voto</h3><p class="sub">Lula 1º turno = % no confronto direto com Flávio.</p><div data-table="swing" data-open></div></div>
+    <div class="card"><h3>4.7 Urnas substituídas entre turnos</h3><p class="sub">Número de série da urna diferente no 2º turno.</p><div data-table="substituidas" data-open></div></div>
+  </div>
+</section>
+
+<section id="metodo">
+  <h2>5. Metodologia</h2>
+  <ul>
+    <li>Fonte: arquivos <code>bweb_1t_*.csv</code> e <code>bweb_2t_*.csv</code> (boletim de urna na web) do Portal de Dados Abertos do TSE, todas as UFs e exterior.</li>
+    <li>Uma urna = <code>UF + município + zona + seção</code>. Comparecimento e aptos vêm do próprio boletim.</li>
+    <li>Processamento com DuckDB no notebook <code>analise_urnas.ipynb</code>; este relatório é gerado por <code>gerar_relatorio.py</code>.</li>
+    <li>Os testes estatísticos indicam padrões; casos individuais só podem ser esclarecidos pela Justiça Eleitoral (atas de seção, logs da urna).</li>
+  </ul>
+  <p><a href="como-executar.html">Como baixar os dados e reproduzir este relatório →</a></p>
+</section>
+<footer>Relatório independente, gerado a partir de dados públicos. Não é publicação oficial do TSE.</footer>
+</main>
+
+<script>
+const D = /*__DADOS__*/null;
+
+const fmt = n => n == null ? '—' : Number(n).toLocaleString('pt-BR');
+const fmtP = n => n == null ? '—' : Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + '%';
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const nome = s => s === 'FLAVIO BOLSONARO' ? 'Flávio Bolsonaro' : s === 'LULA' ? 'Lula' : s;
+
+document.getElementById('gerado').textContent = D.gerado_em;
+document.querySelectorAll('.lim').forEach(e => e.textContent = D.limiar);
+document.getElementById('corrNac').textContent = D.corr_nacional.toLocaleString('pt-BR');
+
+// ---- tiles ----
+function tiles(el, items) {
+  el.innerHTML = items.map(([k, v, n]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n || ''}</div></div>`).join('');
+}
+const [v1, v2] = D.visao, p2 = D.pres2;
+tiles(document.getElementById('tiles'), [
+  ['Urnas', fmt(v2.urnas), `${fmt(v2.municipios)} municípios`],
+  ['Eleitores aptos', fmt(v2.aptos), ''],
+  ['Comparecimento', `${fmtP(v1.pct_comparecimento)} → ${fmtP(v2.pct_comparecimento)}`, '1º → 2º turno'],
+  ['Presidente eleito', nome(p2[0].candidato), `${fmtP(p2[0].pct)} dos válidos · ${fmt(p2[0].votos)} votos`],
+]);
+const vr = D.var_resumo;
+tiles(document.getElementById('tilesVar'), [
+  ['Municípios > ' + D.limiar + '%', fmt(vr.cidades_acima), `de ${fmt(vr.cidades)}`],
+  ['Urnas > ' + D.limiar + '%', fmt(vr.urnas_acima), `de ${fmt(vr.urnas)} (${fmtP(100 * vr.urnas_acima / vr.urnas)})`],
+  ['Mediana por município', fmtP(vr.mediana_cidades), 'variação do comparecimento'],
+]);
+document.getElementById('bn2').innerHTML = '<p class="sub">' + D.brancos_nulos2.map(r => `${r.tipo}: ${fmt(r.votos)} (${fmtP(r.pct)})`).join(' · ') + '</p>';
+
+// ---- tabelas ----
+const COLS = {
+  pres1: [['candidato', 'Candidato'], ['partido', 'Partido'], ['votos', 'Votos', 1], ['pct', '% válidos', 2]],
+  pres2: [['candidato', 'Candidato'], ['partido', 'Partido'], ['votos', 'Votos', 1], ['pct', '% válidos', 2]],
+  pres2_uf: [['uf', 'UF'], ['lula', 'Lula %', 2], ['flavio', 'Flávio %', 2]],
+  gov: [['uf', 'UF'], ['turno', 'Turno', 1], ['candidato', 'Eleito'], ['partido', 'Partido'], ['votos', 'Votos', 1], ['pct', '% válidos', 2]],
+  unico_resumo: [['turno', 'Turno', 1], ['cargo', 'Cargo'], ['candidato', 'Candidato'], ['urnas', 'Urnas', 1], ['votos', 'Votos do candidato', 1], ['brancos_nulos', 'Brancos + nulos', 1]],
+  unico_uf: [['uf', 'UF'], ['lula', 'Lula', 1], ['flavio', 'Flávio', 1]],
+  var_cidades: [['uf', 'UF'], ['municipio', 'Município'], ['urnas', 'Urnas', 1], ['votos_t1', 'Votos 1º t', 1], ['votos_t2', 'Votos 2º t', 1], ['variacao_pct', 'Variação', 2], ['urnas_acima', 'Urnas > limite', 1]],
+  var_urnas_uf: [['uf', 'UF'], ['urnas', 'Urnas > limite', 1], ['pct', '% das urnas', 2]],
+  var_urnas_top: [['uf', 'UF'], ['municipio', 'Município'], ['zona', 'Zona', 1], ['secao', 'Seção', 1], ['aptos_t1', 'Aptos 1º', 1], ['aptos_t2', 'Aptos 2º', 1], ['votos_t1', 'Votos 1º', 1], ['votos_t2', 'Votos 2º', 1], ['variacao_pct', 'Variação', 2]],
+  unico_local: [['uf', 'UF'], ['municipio', 'Município'], ['zona', 'Zona', 1], ['secao', 'Seção', 1], ['validos', 'Válidos', 1], ['candidato', 'Candidato'], ['pct_lula_municipio', 'Lula no município', 2], ['pct_lula_local', 'Lula no local', 2], ['urnas_local', 'Urnas no local', 1]],
+  hist_lula: [['faixa', 'Faixa % Lula', 1], ['urnas', 'Urnas', 1]],
+  digitos: [['turno', 'Turno', 1], ['digito', 'Dígito', 1], ['pct', '% das contagens', 2]],
+  alto_comp: [['turno', 'Turno', 1], ['urnas_97', 'Urnas ≥ 97%', 1], ['urnas_100', 'Urnas = 100%', 1], ['votos', 'Votos nessas urnas', 1], ['pct_lula', 'Lula nessas urnas', 2], ['pct_lula_geral', 'Lula geral', 2]],
+  corr_uf: [['uf', 'UF'], ['corr', 'Correlação', 3]],
+  swing: [['grupo', 'Grupo'], ['urnas', 'Urnas', 1], ['lula_1t', 'Lula 1º t', 2], ['lula_2t', 'Lula 2º t', 2]],
+  substituidas: [['grupo', 'Grupo'], ['urnas', 'Urnas', 1], ['lula_1t', 'Lula 1º t', 2], ['lula_2t', 'Lula 2º t', 2]],
+};
+const cell = (v, t) => t === 2 ? fmtP(v) : t === 3 ? Number(v).toLocaleString('pt-BR') : t === 1 ? fmt(v) : nome(v ?? '—');
+document.querySelectorAll('[data-table]').forEach(el => {
+  const key = el.dataset.table, cols = COLS[key], data = D[key];
+  const t = `<div class="tbl-wrap"><table><thead><tr>${cols.map(c => `<th class="${c[2] ? 'num' : ''}">${c[1]}</th>`).join('')}</tr></thead><tbody>` +
+    data.map(r => `<tr>${cols.map(c => `<td class="${c[2] ? 'num' : ''}">${cell(r[c[0]], c[2])}</td>`).join('')}</tr>`).join('') + '</tbody></table></div>';
+  el.innerHTML = el.hasAttribute('data-open') ? t : `<details><summary>Ver dados (${fmt(data.length)} linhas)</summary>${t}</details>`;
+});
+
+// ---- heatmap ----
+function heat() {
+  const seq = css('--seq').split(',').map(s => s.trim());
+  const m = {}; let max = 0;
+  D.heatmap.forEach(r => { m[r.lin + '_' + r.col] = r.urnas; max = Math.max(max, r.urnas); });
+  let h = '<thead><tr><th>Comparecimento ↓ · % Lula →</th>' + [...Array(10).keys()].map(c => `<th>${c * 10}–${c * 10 + 10}%</th>`).join('') + '</tr></thead><tbody>';
+  for (let l = 10; l <= 19; l++) {
+    h += `<tr><th>${l === 10 ? '≤ 55%' : l * 5 + '–' + (l * 5 + 5) + '%'}</th>`;
+    for (let c = 0; c < 10; c++) {
+      const n = m[l + '_' + c] || 0, i = n ? Math.min(seq.length - 1, Math.floor(Math.sqrt(n / max) * seq.length)) : -1;
+      const bg = i < 0 ? 'transparent' : seq[i];
+      const dark = document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+      const ink = i < 0 ? 'var(--muted)' : (dark ? (i >= 8 ? '#0b0b0b' : '#f0efec') : (i >= 7 ? '#ffffff' : '#0b0b0b'));
+      h += `<td style="background:${bg};color:${ink}" title="${fmt(n)} urnas">${fmt(n)}</td>`;
+    }
+    h += '</tr>';
+  }
+  document.getElementById('heat').innerHTML = h + '</tbody>';
+}
+
+// ---- gráficos ----
+let charts = [];
+function base(extra = {}) {
+  const ink2 = css('--ink-2'), grid = css('--grid'), muted = css('--muted');
+  Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", sans-serif';
+  Chart.defaults.color = muted;
+  return {
+    responsive: true, maintainAspectRatio: false, animation: false,
+    plugins: { legend: { display: false }, tooltip: { backgroundColor: css('--surface'), titleColor: css('--ink'), bodyColor: ink2, borderColor: css('--axis'), borderWidth: 1, padding: 10 } },
+    scales: {
+      x: { grid: { color: grid }, border: { color: css('--axis') }, ticks: { color: muted } },
+      y: { grid: { color: grid }, border: { color: css('--axis') }, ticks: { color: muted } },
+    },
+    ...extra,
+  };
+}
+const bar = { borderRadius: 4, borderSkipped: 'start', maxBarThickness: 28 };
+function mk(id, cfg) { charts.push(new Chart(document.getElementById(id), cfg)); }
+
+function draw() {
+  charts.forEach(c => c.destroy()); charts = [];
+  const s1 = css('--s1'), s2 = css('--s2'), neg = css('--neg'), surf = css('--surface');
+  const pctAxis = { ticks: { color: css('--muted'), callback: v => v + '%' } };
+
+  let o = base({ indexAxis: 'y' });
+  o.scales.x = { ...o.scales.x, ...pctAxis };
+  o.plugins.tooltip.callbacks = { label: c => ` ${fmtP(c.raw)} · ${fmt(D.pres1[c.dataIndex].votos)} votos` };
+  mk('cPres1', { type: 'bar', data: { labels: D.pres1.map(r => `${nome(r.candidato)} (${r.partido})`), datasets: [{ data: D.pres1.map(r => r.pct), backgroundColor: s1, ...bar }] }, options: o });
+
+  o = base({ indexAxis: 'y' });
+  o.scales.x = { ...o.scales.x, ...pctAxis, max: 100 };
+  o.plugins.tooltip.callbacks = { label: c => ` ${fmtP(c.raw)} · ${fmt(D.pres2[c.dataIndex].votos)} votos` };
+  mk('cPres2', { type: 'bar', data: { labels: D.pres2.map(r => `${nome(r.candidato)} (${r.partido})`), datasets: [{ data: D.pres2.map(r => r.pct), backgroundColor: [s1, s2], ...bar }] }, options: o });
+
+  o = base({ indexAxis: 'y' });
+  o.scales.x = { ...o.scales.x, ...pctAxis, stacked: true, max: 100 };
+  o.scales.y = { ...o.scales.y, stacked: true };
+  o.plugins.tooltip.callbacks = { label: c => ` ${c.dataset.label}: ${fmtP(c.raw)}` };
+  mk('cPresUF', { type: 'bar', data: { labels: D.pres2_uf.map(r => r.uf), datasets: [
+    { label: 'Lula', data: D.pres2_uf.map(r => r.lula), backgroundColor: s1, borderColor: surf, borderWidth: { right: 2 }, borderSkipped: false, maxBarThickness: 18 },
+    { label: 'Flávio Bolsonaro', data: D.pres2_uf.map(r => r.flavio), backgroundColor: s2, borderColor: surf, borderWidth: { left: 2 }, borderSkipped: false, maxBarThickness: 18 },
+  ] }, options: o });
+
+  o = base();
+  o.scales.x = { ...o.scales.x, stacked: true }; o.scales.y = { ...o.scales.y, stacked: true };
+  mk('cUnicoUF', { type: 'bar', data: { labels: D.unico_uf.map(r => r.uf), datasets: [
+    { label: 'Lula', data: D.unico_uf.map(r => r.lula), backgroundColor: s1, borderColor: surf, borderWidth: { top: 2 }, borderSkipped: false, maxBarThickness: 28 },
+    { label: 'Flávio Bolsonaro', data: D.unico_uf.map(r => r.flavio), backgroundColor: s2, borderColor: surf, borderWidth: { top: 2 }, borderSkipped: false, maxBarThickness: 28 },
+  ] }, options: o });
+
+  o = base();
+  o.plugins.tooltip.callbacks = { title: c => `${D.var_hist[c[0].dataIndex].faixa}% a ${D.var_hist[c[0].dataIndex].faixa + 2}%`, label: c => ` ${fmt(c.raw)} municípios` };
+  o.scales.x.ticks.callback = function (v) { return this.getLabelForValue(v) + '%'; };
+  mk('cVarHist', { type: 'bar', data: { labels: D.var_hist.map(r => r.faixa), datasets: [{ data: D.var_hist.map(r => r.cidades),
+    backgroundColor: D.var_hist.map(r => (r.faixa >= D.limiar || r.faixa + 2 <= -D.limiar) ? s2 : s1), ...bar, borderColor: surf, borderWidth: { left: 1, right: 1 } }] }, options: o });
+
+  o = base();
+  o.scales.y = { ...o.scales.y, ...pctAxis };
+  o.plugins.tooltip.callbacks = { label: c => ` ${fmtP(c.raw)} das urnas · ${fmt(D.var_urnas_uf[c.dataIndex].urnas)} urnas` };
+  mk('cVarUF', { type: 'bar', data: { labels: D.var_urnas_uf.map(r => r.uf), datasets: [{ data: D.var_urnas_uf.map(r => r.pct), backgroundColor: s1, ...bar }] }, options: o });
+
+  o = base();
+  o.plugins.tooltip.callbacks = { title: c => `${c[0].label}% a ${+c[0].label + 5}% para Lula`, label: c => ` ${fmt(c.raw)} urnas` };
+  o.scales.x.ticks.callback = function (v) { return this.getLabelForValue(v) + '%'; };
+  mk('cHistLula', { type: 'bar', data: { labels: D.hist_lula.map(r => r.faixa), datasets: [{ data: D.hist_lula.map(r => r.urnas), backgroundColor: s1, ...bar }] }, options: o });
+
+  o = base();
+  o.scales.y = { ...o.scales.y, min: 9.8, max: 10.2, ticks: { color: css('--muted'), callback: v => v.toFixed(1) + '%' } };
+  o.plugins.tooltip.callbacks = { label: c => ` ${c.dataset.label}: ${fmtP(c.raw)}` };
+  const dg = t => D.digitos.filter(r => r.turno === t).map(r => r.pct);
+  mk('cDig', { type: 'line', data: { labels: [...Array(10).keys()], datasets: [
+    { label: 'Esperado', data: Array(10).fill(10), borderColor: css('--axis'), borderDash: [4, 4], borderWidth: 2, pointRadius: 0 },
+    { label: '1º turno', data: dg(1), borderColor: s1, backgroundColor: s1, borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, pointBorderColor: surf, pointBorderWidth: 2 },
+    { label: '2º turno', data: dg(2), borderColor: s2, backgroundColor: s2, borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, pointBorderColor: surf, pointBorderWidth: 2 },
+  ] }, options: { ...o, interaction: { mode: 'index', intersect: false } } });
+
+  o = base();
+  o.scales.y = { ...o.scales.y, min: -0.6, max: 0.6 };
+  o.plugins.tooltip.callbacks = { label: c => ` correlação ${Number(c.raw).toLocaleString('pt-BR')}` };
+  mk('cCorr', { type: 'bar', data: { labels: D.corr_uf.map(r => r.uf), datasets: [{ data: D.corr_uf.map(r => r.corr),
+    backgroundColor: D.corr_uf.map(r => r.corr >= 0 ? s1 : neg), borderRadius: 4, borderSkipped: false, maxBarThickness: 24 }] }, options: o });
+
+  heat();
+}
+
+// ---- tema ----
+const root = document.documentElement;
+try { const t = localStorage.getItem('tema'); if (t) root.dataset.theme = t; } catch (e) {}
+document.getElementById('tema').onclick = () => {
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+  try { localStorage.setItem('tema', root.dataset.theme); } catch (e) {}
+  draw();
+};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+draw();
+</script>
+</body>
+</html>
