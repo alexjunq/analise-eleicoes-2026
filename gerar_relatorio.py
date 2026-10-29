@@ -3,6 +3,7 @@
 Uso:  python3 gerar_relatorio.py
 """
 import json
+import math
 from datetime import date
 from pathlib import Path
 
@@ -208,6 +209,30 @@ d['digitos'] = rows('''
     FROM (SELECT turno, lula AS votos FROM pres UNION ALL SELECT turno, flavio FROM pres)
     WHERE votos >= 10 GROUP BY 1, 2 ORDER BY turno, digito
 ''')
+def qui2_p(x, gl):
+    """p-valor do qui-quadrado (cauda superior), pela série da gama incompleta."""
+    a, z = gl / 2, x / 2
+    termo = soma = 1 / a
+    for n in range(1, 500):
+        termo *= z / (a + n)
+        soma += termo
+    return max(0.0, 1 - soma * math.exp(-z + a * math.log(z) - math.lgamma(a)))
+
+
+d['digitos_qui2'] = []
+for t, x2, n in con.sql('''
+    WITH c AS (
+        SELECT turno, votos % 10 AS digito, count(*) AS n
+        FROM (SELECT turno, lula AS votos FROM pres UNION ALL SELECT turno, flavio FROM pres)
+        WHERE votos >= 10 GROUP BY 1, 2
+    )
+    SELECT turno, sum((n - tot / 10.0) ^ 2 / (tot / 10.0)), any_value(tot)
+    FROM (SELECT *, sum(n) OVER (PARTITION BY turno) AS tot FROM c) GROUP BY turno ORDER BY turno
+''').fetchall():
+    d['digitos_qui2'].append({'turno': t, 'contagens': int(n), 'qui2': round(x2, 1), 'limite': 16.9,
+                              'p': round(qui2_p(x2, 9), 2),
+                              'leitura': 'dentro do acaso' if x2 < 16.9 else 'acima do esperado'})
+
 pares = "FROM (SELECT * FROM pres WHERE turno = 1) a JOIN (SELECT * FROM pres WHERE turno = 2) b USING (uf, cd_municipio, zona, secao)"
 d['swing'] = rows(f'''
     WITH g AS (

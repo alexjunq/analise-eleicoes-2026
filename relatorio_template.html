@@ -52,6 +52,9 @@ nav.toc { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 20px 0 0; font-
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 14px 0; }
 .card h3 { margin-top: 0; }
 .chart { position: relative; width: 100%; }
+.explica { margin: 4px 0 14px; max-width: 88ch; }
+.explica h4 { margin: 14px 0 4px; color: var(--ink); }
+.explica p { color: var(--ink-2); font-size: .93rem; line-height: 1.6; margin: 0 0 8px; }
 h4 { font-size: .9rem; font-weight: 600; margin: 4px 0 6px; color: var(--ink-2); }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; }
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
@@ -136,38 +139,173 @@ footer { margin-top: 64px; color: var(--muted); font-size: .85rem; }
     Os testes detectam sinais típicos de fraude na contagem (inclusão de votos, números inventados, urnas destoantes);
     não provam ausência de fraude nem detectam compra de votos ou coação.</p></div>
 
-  <h3>4.1 Urnas de candidato único estão em locais inteiros com voto homogêneo</h3>
-  <p>Para cada urna 100% de um candidato (2º turno, ≥ 30 válidos), comparamos o % de Lula no município e no
-    mesmo local de votação. O local inteiro vota igual mesmo onde o município vota diferente — padrão típico de aldeias e comunidades isoladas.</p>
-  <div class="card"><div data-table="unico_local"></div></div>
+  <div class="card"><h3>4.1 Urnas de candidato único estão em locais inteiros com voto homogêneo</h3>
+    <div class="explica">
+      <h4>A ideia</h4>
+      <p>Uma urna com 100% dos votos para um só candidato pode ter duas origens: fraude (alguém preenchendo a urna) ou uma comunidade muito coesa,
+        como uma aldeia, um assentamento ou uma comunidade religiosa. Para separar uma coisa da outra, olhamos a vizinhança. Uma urna adulterada
+        destoaria das outras seções do mesmo local de votação (a mesma escola, com eleitores do mesmo bairro). Se o local inteiro vota quase igual,
+        a explicação mais simples é a própria comunidade.</p>
+      <h4>Como calculamos</h4>
+      <p>Pegamos as urnas do 2º turno com 100% para Lula ou para Flávio e pelo menos 30 votos válidos (abaixo disso, unanimidade acontece com
+        frequência por puro acaso). Para cada uma, calculamos o % de Lula no município inteiro e no local de votação, somando todas as seções que funcionam no mesmo endereço.</p>
+    </div>
+    <div data-table="unico_local"></div>
+    <div class="explica">
+      <h4>O que os dados mostram</h4>
+      <p>São 107 urnas (103 para Lula, 4 para Flávio) em 16 UFs. <strong>Em todas elas, o local de votação como um todo deu 90% ou mais ao mesmo candidato.</strong>
+        Em 34 casos o local tem mais de uma urna, e as demais urnas, apuradas separadamente, votaram da mesma forma. Em 20 casos o município votou
+        majoritariamente no outro candidato, mas o local acompanhou a urna: é o retrato de comunidades isoladas dentro de municípios com perfil diferente.</p>
+      <h4>Limites</h4>
+      <p>O teste não prova que cada urna seja legítima. Se um local inteiro fosse alvo de coação ou compra de votos, a contagem seria homogênea do mesmo jeito,
+        e isso não aparece em dados de apuração. Casos individuais só são esclarecidos com as atas de seção.</p>
+    </div></div>
 
   <div class="card"><h3>4.2 Urnas por % de votos em cada candidato (2º turno)</h3>
+    <div class="explica">
+      <h4>A ideia</h4>
+      <p>Numa contagem honesta, o % de um candidato varia de urna para urna de forma contínua: há poucas urnas nos extremos, muitas no meio, e o desenho
+        é uma curva suave. Quando votos são incluídos em massa, ou urnas inteiras são fabricadas, aparecem anomalias: um pico isolado perto de 100%
+        (ou de 0% para o adversário), ou degraus em valores redondos como 50%, 60% e 70%.</p>
+      <h4>Como calculamos</h4>
+      <p>Para cada urna do 2º turno com pelo menos 50 votos válidos (498.528 urnas), calculamos o % dos válidos de cada candidato e contamos quantas urnas
+        caem em cada faixa de 5 pontos. A última barra (100%) reúne só as urnas unânimes. Os dois gráficos usam a mesma escala.</p>
+    </div>
     <div class="grid2">
       <div><h4><i class="dot" style="background:var(--lula)"></i>Lula</h4><div class="chart" style="height:260px"><canvas id="cHistLula"></canvas></div></div>
       <div><h4><i class="dot" style="background:var(--flavio)"></i>Flávio Bolsonaro</h4><div class="chart" style="height:260px"><canvas id="cHistFlavio"></canvas></div></div>
     </div>
-    <p class="sub">Curvas suaves, sem pico artificial em 0% ou 100% para nenhum dos dois. Como no 2º turno só há dois candidatos, uma curva é o espelho da outra. Mesma escala nos dois gráficos. Urnas com ≥ 50 válidos.</p><div data-table="hist_lula"></div></div>
+    <div data-table="hist_lula"></div>
+    <div class="explica">
+      <h4>O que os dados mostram</h4>
+      <p><strong>As duas curvas são suaves, sem pico nos extremos e sem degraus em valores redondos.</strong> Lula concentra urnas entre 40% e 50%; Flávio, entre 50% e 60%.
+        Como no 2º turno só há dois candidatos, uma curva é o espelho da outra (% Flávio = 100 − % Lula). A cauda direita de Lula é mais longa
+        (1.619 urnas com 95% a 100% e 88 unânimes, contra 36 e 3 de Flávio), mas ela desce de forma gradual até a ponta. Isso reflete a concentração
+        geográfica do voto em Lula em parte do Norte e do Nordeste, não um acúmulo artificial.</p>
+      <h4>Limites</h4>
+      <p>Uma fraude pequena, espalhada por poucas urnas, não chega a deformar a curva nacional. O gráfico serve para descartar manipulação em larga escala.</p>
+    </div></div>
 
-  <div class="card"><h3>4.5 Último dígito das contagens</h3>
-    <div class="legend"><span><i style="background:var(--s1)"></i>1º turno</span><span><i style="background:var(--s2)"></i>2º turno</span></div>
-    <div class="chart" style="height:250px"><canvas id="cDig"></canvas></div>
-    <p class="sub">Contagens inventadas costumam fugir de 10% por dígito. Aqui todos ficam entre 9,96% e 10,07%.</p><div data-table="digitos"></div></div>
-
-  <div class="card"><h3>4.3 Urnas com comparecimento ≥ 97%</h3><p class="sub">Urnas com ≥ 50 aptos. Poucas urnas e poucos votos — não alteram o resultado.</p><div data-table="alto_comp" data-open></div></div>
+  <div class="card"><h3>4.3 Urnas com comparecimento ≥ 97%</h3>
+    <div class="explica">
+      <h4>A ideia</h4>
+      <p>Uma forma clássica de fraude é “completar” a urna, votando no lugar dos eleitores que não apareceram. Isso deixa uma marca: comparecimento perto de 100%,
+        algo quase impossível numa seção real. Sempre há eleitores que mudaram de cidade, estão viajando, doentes ou já morreram sem ter sido excluídos do cadastro.
+        No Brasil, o comparecimento médio fica em torno de 79% a 81%.</p>
+      <h4>Como calculamos</h4>
+      <p>Entre as urnas com pelo menos 50 eleitores aptos, contamos as que tiveram comparecimento de 97% ou mais e as de exatamente 100%. Também somamos os votos nessas urnas
+        e comparamos o % de Lula nelas com o % de Lula no país.</p>
+    </div>
+    <div data-table="alto_comp" data-open></div>
+    <div class="explica">
+      <h4>O que os dados mostram</h4>
+      <p>São 124 urnas no 1º turno e 142 no 2º, de quase 500 mil, ou seja, 0,03% do total. Com 100% de comparecimento há só 10 e 9. Juntas, somam 15.365 e 19.843 votos.
+        Lula vai melhor nelas (74,7% contra 51,8% no país, no 2º turno), o que combina com o item 4.1: são, em geral, pequenas comunidades coesas e com mobilização alta.
+        <strong>Mesmo no pior cenário, em que todas fossem fraudulentas, o efeito máximo seria de cerca de 20 mil votos, frente a uma diferença de 4,43 milhões no 2º turno.</strong></p>
+      <h4>Limites</h4>
+      <p>Uma inclusão parcial de votos (por exemplo, levar uma urna de 75% para 90% de comparecimento) não aparece aqui. Esse caso é tratado no item 4.4.</p>
+    </div></div>
 
   <div class="card"><h3>4.4 Comparecimento × % de Lula por urna (2º turno)</h3>
-    <p class="sub">Inclusão de votos em massa gera correlação positiva e uma cauda de urnas indo para o canto inferior direito (comparecimento e voto ≈ 100%).
-      Correlação nacional: <strong id="corrNac"></strong>.</p>
+    <div class="explica">
+      <h4>A ideia</h4>
+      <p>Quando votos falsos são incluídos para um candidato, cada voto falso aumenta ao mesmo tempo o comparecimento da urna e o % desse candidato.
+        As urnas mais “infladas” passam a ter as duas coisas altas. Isso produz uma <strong>correlação positiva</strong> entre comparecimento e voto e uma
+        <strong>cauda de urnas no canto inferior direito</strong> do mapa abaixo, onde comparecimento e voto se aproximam de 100%. É o método de Klimek e colegas
+        (PNAS, 2012), que identificou esse padrão em eleições da Rússia e de Uganda.</p>
+      <h4>Como calculamos</h4>
+      <p>Usamos as urnas do 2º turno com pelo menos 50 aptos, sem o exterior. No mapa de calor, cada linha é uma faixa de 5 pontos de comparecimento
+        (abaixo de 50% fica tudo na primeira), cada coluna é uma faixa de 10 pontos de % de Lula, e a cor indica quantas urnas caem ali. Também calculamos o
+        coeficiente de correlação de Pearson, no país e em cada UF. Ele vai de −1 a 1: 0 significa que não há relação, e valores acima de 0,3 já indicariam uma relação forte.</p>
+      <p>Correlação nacional: <strong id="corrNac"></strong>.</p>
+    </div>
     <div class="tbl-wrap" style="max-height:none"><table class="heat" id="heat"></table></div>
     <h3>Correlação por UF</h3>
     <div class="legend"><span><i style="background:var(--s1)"></i>Positiva</span><span><i style="background:var(--neg)"></i>Negativa</span></div>
-    <div class="chart" style="height:300px"><canvas id="cCorr"></canvas></div><div data-table="corr_uf"></div></div>
+    <div class="chart" style="height:300px"><canvas id="cCorr"></canvas></div><div data-table="corr_uf"></div>
+    <div class="explica">
+      <h4>O que os dados mostram</h4>
+      <p><strong>A correlação nacional é praticamente zero (0,049), e o mapa não tem cauda no canto inferior direito.</strong> Em 21 das 27 UFs a correlação é negativa,
+        indo de −0,47 no RS a −0,04 no RN: onde Lula vai melhor, o comparecimento é um pouco menor. Isso tem explicação social conhecida, já que áreas mais pobres e rurais
+        têm mais abstenção, por distância e custo de deslocamento. As 6 UFs positivas têm valores fracos, e o maior é o de RR (0,13).</p>
+      <h4>Limites</h4>
+      <p>Correlação positiva também pode surgir de causas legítimas, como mobilização forte em redutos de um candidato. Por isso o sinal de alerta é a combinação de
+        correlação positiva com um aglomerado de urnas no canto do mapa, e nenhuma das duas coisas aparece aqui.</p>
+    </div></div>
+
+  <div class="card"><h3>4.5 Último dígito das contagens</h3>
+    <div class="explica">
+      <h4>A ideia</h4>
+      <p>Quando alguém inventa números, tende a usar uns algarismos mais do que outros, mesmo sem perceber. Terminações em 0 e 5 aparecem mais (“vamos pôr 150 votos aqui”),
+        e repetir o mesmo final várias vezes é evitado porque “parece artificial”. Pessoas não conseguem gerar números realmente aleatórios. Já a quantidade de votos de um
+        candidato numa urna (137, 248, 92…) resulta de centenas de decisões independentes, e por isso o <strong>último algarismo</strong> não tem preferência: cada dígito,
+        de 0 a 9, deve aparecer em cerca de 10% das contagens.</p>
+      <p>A conhecida Lei de Benford trata do <em>primeiro</em> dígito e não serve bem para urnas. Como cada seção tem no máximo uns 400 a 500 eleitores, o primeiro
+        dígito depende do tamanho da urna e da força do candidato no lugar. O último dígito não depende de nada disso, e por isso é o usado em forense eleitoral.</p>
+      <h4>Como calculamos</h4>
+      <p>Usamos os votos de Lula e de Flávio em cada urna, nos dois turnos, só quando a contagem tem 10 votos ou mais. Abaixo disso o número tem um algarismo só,
+        e o “último dígito” seria o próprio total, que não é uniforme (há muito mais urnas com 2 votos do que com 9). São cerca de 995 mil contagens por turno.
+        Para cada dígito, calculamos a fração de contagens que termina nele.</p>
+    </div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>1º turno</span><span><i style="background:var(--s2)"></i>2º turno</span></div>
+    <div class="chart" style="height:250px"><canvas id="cDig"></canvas></div>
+    <div data-table="digitos"></div>
+    <div class="explica">
+      <h4>Teste formal: qui-quadrado</h4>
+      <p>Para saber se as pequenas diferenças entre os dígitos são só acaso, usamos o teste qui-quadrado (χ²). Ele compara quantas contagens terminam em cada dígito
+        com as esperadas (10% do total) e resume o desvio num único número. Com 9 graus de liberdade, valores abaixo de 16,9 estão dentro do que o acaso produz
+        (nível de 5%). O p-valor é a probabilidade de o acaso gerar um desvio pelo menos desse tamanho: quanto mais perto de 1, mais comum.</p>
+    </div>
+    <div data-table="digitos_qui2" data-open></div>
+    <div class="explica">
+      <h4>O que os dados mostram</h4>
+      <p><strong>Todos os dígitos ficam entre 9,96% e 10,07%, nos dois turnos, e o χ² está bem abaixo do limite (12,4 no 1º turno e 4,5 no 2º).</strong>
+        O 0 e o 5, sinais clássicos de número inventado, estão exatamente onde deveriam. Com quase 1 milhão de contagens o teste é muito sensível,
+        e alguns milhares de urnas com números inventados já apareceriam.</p>
+      <h4>Limites</h4>
+      <p>O teste pega números inventados à mão. Uma fraude que some ou transfira votos sem mudar a forma como os números terminam (por exemplo, +20 votos em várias urnas)
+        não altera o último dígito. Por isso ele é só um dos testes, ao lado dos itens 4.3 e 4.4.</p>
+    </div></div>
 
   <div class="card"><h3>4.6 Variação de comparecimento × mudança de voto</h3>
-    <p class="sub">Votos = comparecimento (inclui brancos e nulos). Percentuais sobre votos válidos; “Demais” = outros candidatos (só existem no 1º turno).
-      “Lula × Flávio” = % de Lula considerando só os dois, comparável entre os turnos.</p>
-    <div data-table="swing" data-open></div></div>
-  <div class="card"><h3>4.7 Urnas substituídas entre turnos</h3><p class="sub">Número de série da urna diferente no 2º turno. Lula 1º turno = % no confronto direto com Flávio.</p><div data-table="substituidas" data-open></div></div>
+    <div class="explica">
+      <h4>A ideia</h4>
+      <p>Entre os dois turnos, o comparecimento de cada urna costuma variar pouco: são os mesmos eleitores, com três semanas de intervalo. Uma urna em que o comparecimento
+        salta pode indicar votos incluídos no 2º turno. Se fosse fraude, o salto viria acompanhado de uma virada de voto a favor de quem se beneficiou. O teste compara
+        como votaram, nos dois turnos, as urnas com variação acima de 10% e as demais.</p>
+      <h4>Como calculamos</h4>
+      <p>Usamos as urnas presentes nos dois turnos. A variação é |comparecimento no 2º − comparecimento no 1º| ÷ comparecimento no 1º. Para cada grupo e turno, mostramos
+        votos (comparecimento, incluindo brancos e nulos), abstenção e os votos de Lula, de Flávio e dos demais candidatos, em números absolutos e em % dos válidos.
+        “Demais” só existem no 1º turno. “Lula × Flávio” é o % de Lula considerando só os dois, o que permite comparar os turnos.</p>
+    </div>
+    <div data-table="swing" data-open></div>
+    <div class="explica">
+      <h4>O que os dados mostram</h4>
+      <p>São 12.580 urnas (2,5%), com 2,9 milhões de votos. Já no 1º turno essas urnas eram mais favoráveis a Lula (58,1% no confronto direto, contra 48,8% nas demais),
+        ou seja, o perfil existia antes do 2º turno. <strong>Entre os turnos, Lula ganhou 2,8 pontos nos dois grupos (58,1% → 60,9% e 48,8% → 51,6%): o mesmo movimento.</strong>
+        Não há virada concentrada nas urnas que variaram. A abstenção bem mais alta nelas (32% contra 21% no 1º turno) indica áreas remotas e o exterior, onde o comparecimento
+        oscila naturalmente.</p>
+      <h4>Limites</h4>
+      <p>A comparação é feita por grupo. Uma urna individual com comportamento estranho pode ficar diluída na média; a lista completa está na seção 3 e no CSV do notebook.</p>
+    </div></div>
+
+  <div class="card"><h3>4.7 Urnas substituídas entre turnos</h3>
+    <div class="explica">
+      <h4>A ideia</h4>
+      <p>Urnas eletrônicas que apresentam defeito são trocadas por urnas de contingência. Se a troca fosse usada para inserir uma urna adulterada, as seções com urna
+        substituída deveriam ter um resultado diferente das outras.</p>
+      <h4>Como calculamos</h4>
+      <p>Comparamos o número de série da urna de cada seção no 1º e no 2º turno. Se for diferente, a seção entra no grupo “Urna substituída”. Isso inclui trocas por defeito
+        e também remanejamentos de logística entre os turnos. Para cada grupo, mostramos o % de Lula no confronto direto com Flávio, nos dois turnos.</p>
+    </div>
+    <div data-table="substituidas" data-open></div>
+    <div class="explica">
+      <h4>O que os dados mostram</h4>
+      <p>São 4.435 seções com urna diferente (0,9%). <strong>Nelas Lula passou de 49,22% para 52,01% (+2,79 pontos), e nas demais de 48,99% para 51,78% (+2,79 pontos):
+        exatamente o mesmo movimento.</strong> A troca de urna não está associada a nenhuma mudança de resultado.</p>
+      <h4>Limites</h4>
+      <p>Pelos boletins não dá para saber o motivo da troca. Os logs das urnas, publicados pelo TSE, permitem verificar cada caso.</p>
+    </div></div>
 </section>
 
 <section id="metodo">
@@ -229,6 +367,7 @@ const COLS = {
   var_urnas_top: [['uf', 'UF'], ['municipio', 'Município'], ['zona', 'Zona', 1], ['secao', 'Seção', 1], ['aptos_t1', 'Aptos 1º', 1], ['aptos_t2', 'Aptos 2º', 1], ['votos_t1', 'Votos 1º', 1], ['votos_t2', 'Votos 2º', 1], ['variacao_pct', 'Variação', 2]],
   unico_local: [['uf', 'UF'], ['municipio', 'Município'], ['zona', 'Zona', 1], ['secao', 'Seção', 1], ['validos', 'Válidos', 1], ['candidato', 'Candidato'], ['pct_lula_municipio', 'Lula no município', 2], ['pct_lula_local', 'Lula no local', 2], ['urnas_local', 'Urnas no local', 1]],
   hist_lula: [['faixa', 'Faixa %', 1], ['urnas_lula', 'Urnas Lula', 1], ['urnas_flavio', 'Urnas Flávio', 1]],
+  digitos_qui2: [['turno', 'Turno', 1], ['contagens', 'Contagens', 1], ['qui2', 'χ²', 3], ['limite', 'Limite (5%)', 3], ['p', 'p-valor', 3], ['leitura', 'Leitura']],
   digitos: [['turno', 'Turno', 1], ['digito', 'Dígito', 1], ['pct', '% das contagens', 2]],
   alto_comp: [['turno', 'Turno', 1], ['urnas_97', 'Urnas ≥ 97%', 1], ['urnas_100', 'Urnas = 100%', 1], ['votos', 'Votos nessas urnas', 1], ['pct_lula', 'Lula nessas urnas', 2], ['pct_lula_geral', 'Lula geral', 2]],
   corr_uf: [['uf', 'UF'], ['corr', 'Correlação', 3]],
